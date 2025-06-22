@@ -2,12 +2,32 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.gpay</groupId>
+    <groupId>net.libyaguide</groupId>
     <artifactId>gpay-api-client</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>GPay API Java Client</name>
     <description>Java SDK for GPay Payment API</description>
+    <url>https://github.com/Libya-Guide/GPay-Java-SDK</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/Libya-Guide/GPay-Java-SDK</url>
+        <connection>scm:git:git://github.com/Libya-Guide/GPay-Java-SDK.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Libya-Guide/GPay-Java-SDK.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <developers>
+        <developer>
+            <id>libyaguide</id>
+            <name>Libya Guide</name>
+            <url>https://libyaguide.net</url>
+        </developer>
+    </developers>
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
