@@ -21,28 +21,64 @@ public class WalletCheck {
     private Date responseTimestamp;
 
     // Getters and setters
-    /** Gets whether the wallet exists. */
+    /**
+     * Gets whether the wallet exists.
+     * @return true if the wallet exists, false otherwise
+     */
     public boolean exists() { return exists; }
-    /** Sets whether the wallet exists. */
+    /**
+     * Sets whether the wallet exists.
+     * @param exists true if the wallet exists, false otherwise
+     */
     public void setExists(boolean exists) { this.exists = exists; }
-    /** Gets the wallet gateway ID. */
+    /**
+     * Gets the wallet gateway ID.
+     * @return the wallet gateway ID
+     */
     public String getWalletGatewayId() { return walletGatewayId; }
-    /** Sets the wallet gateway ID. */
+    /**
+     * Sets the wallet gateway ID.
+     * @param walletGatewayId the wallet gateway ID
+     */
     public void setWalletGatewayId(String walletGatewayId) { this.walletGatewayId = walletGatewayId; }
-    /** Gets the name of the wallet, or null if not found. */
+    /**
+     * Gets the name of the wallet, or null if not found.
+     * @return the wallet name, or null if not found
+     */
     public String getWalletName() { return walletName; }
-    /** Sets the name of the wallet, or null if not found. */
+    /**
+     * Sets the name of the wallet, or null if not found.
+     * @param walletName the wallet name, or null if not found
+     */
     public void setWalletName(String walletName) { this.walletName = walletName; }
-    /** Gets the user account name, or null if not found. */
+    /**
+     * Gets the user account name, or null if not found.
+     * @return the user account name, or null if not found
+     */
     public String getUserAccountName() { return userAccountName; }
-    /** Sets the user account name, or null if not found. */
+    /**
+     * Sets the user account name, or null if not found.
+     * @param userAccountName the user account name, or null if not found
+     */
     public void setUserAccountName(String userAccountName) { this.userAccountName = userAccountName; }
-    /** Gets whether the wallet can receive money. */
+    /**
+     * Gets whether the wallet can receive money.
+     * @return true if the wallet can receive money, false otherwise
+     */
     public boolean canReceiveMoney() { return canReceiveMoney; }
-    /** Sets whether the wallet can receive money. */
+    /**
+     * Sets whether the wallet can receive money.
+     * @param canReceiveMoney true if the wallet can receive money, false otherwise
+     */
     public void setCanReceiveMoney(boolean canReceiveMoney) { this.canReceiveMoney = canReceiveMoney; }
-    /** Gets the response timestamp. */
+    /**
+     * Gets the response timestamp.
+     * @return the response timestamp
+     */
     public Date getResponseTimestamp() { return responseTimestamp; }
-    /** Sets the response timestamp. */
+    /**
+     * Sets the response timestamp.
+     * @param responseTimestamp the response timestamp
+     */
     public void setResponseTimestamp(Date responseTimestamp) { this.responseTimestamp = responseTimestamp; }
 }

@@ -66,10 +66,28 @@ public class GPayApiClient {
      * Enum for GPay API base URLs.
      */
     public enum BaseUrl {
+        /**
+         * Staging URL for GPay API.
+         * Used for testing and development.
+         */
         STAGING("https://gpay-staging.libyaguide.net/banking/api/onlinewallet/v1"),
+        /**
+         * Production URL for GPay API.
+         * Use this for live transactions.
+         */
         PRODUCTION("https://gpay.ly/banking/api/onlinewallet/v1");
+
+        /** The base URL as a string. */
         private final String url;
+        /**
+         * Constructs a BaseUrl enum with the specified URL.
+         * @param url The base URL for the enum.
+         */
         BaseUrl(String url) { this.url = url; }
+        /**
+         * Gets the URL for the base URL enum.
+         * @return The base URL as a string.
+         */
         public String getUrl() { return url; }
     }
 
@@ -95,21 +113,13 @@ public class GPayApiClient {
 
     /**
      * Constructor with default language 'en'.
+     * @param apiKey The API key for authentication.
+     * @param secretKey The secret key for signing requests.
+     * @param password The password for hash token generation.
+     * @param baseUrl The base URL enum value (BaseUrl.STAGING or BaseUrl.PRODUCTION).
      */
     public GPayApiClient(String apiKey, String secretKey, String password, BaseUrl baseUrl) {
         this(apiKey, secretKey, password, baseUrl, "en");
-    }
-
-    private String buildQueryString(Map<String, Object> params) {
-        TreeMap<String, Object> sorted = new TreeMap<>(params);
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Object> entry : sorted.entrySet()) {
-            if (sb.length() > 0) sb.append("&");
-            sb.append(entry.getKey()).append("=");
-            Object value = entry.getValue();
-            sb.append(value == null ? "" : value.toString());
-        }
-        return sb.toString();
     }
 
     private Headers buildHeaders(String salt, String verificationHash, String language) {
@@ -121,12 +131,12 @@ public class GPayApiClient {
                 .build();
     }
 
-    private ApiResponse sendRequest(String endpoint, Map<String, Object> params) throws Exception {
+    private ApiResponse sendRequest(String endpoint, Map<String, String> params) throws Exception {
         String salt = HashTokenGenerator.generateSalt();
         String hashToken = HashTokenGenerator.generateHashToken(salt, password);
-        String queryString = buildQueryString(params);
-        String verificationString = hashToken + queryString;
-        String verificationHash = VerificationHashGenerator.generateHmacSHA256(verificationString, secretKey);
+        String verificationHash = VerificationHashGenerator.generateVerificationHash(
+            hashToken, params, secretKey
+        );
         Headers headers = buildHeaders(salt, verificationHash, language);
         String jsonBody = gson.toJson(params);
         RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
@@ -140,7 +150,7 @@ public class GPayApiClient {
                 throw new RuntimeException("HTTP error: " + response.code() + " - " + response.message());
             }
             Map<String, String> headerMap = new HashMap<>();
-            response.headers().toMultimap().forEach((k, v) -> headerMap.put(k, String.join(",", v)));
+            response.headers().toMultimap().forEach((k, v) -> headerMap.put(k.toLowerCase(), String.join(",", v)));
             return new ApiResponse(
                 response.body().string(),
                 headerMap,
@@ -156,7 +166,7 @@ public class GPayApiClient {
      */
     // Retrieve Wallet Balance
     public Balance getWalletBalance() throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("request_timestamp", String.valueOf(System.currentTimeMillis()));
         ApiResponse apiResponse = sendRequest("/info/balance", params);
         com.google.gson.JsonObject data = gson.fromJson(apiResponse.response, com.google.gson.JsonObject.class).getAsJsonObject("data");
@@ -183,7 +193,7 @@ public class GPayApiClient {
      */
     // Create Payment Request
     public PaymentRequest createPaymentRequest(BigDecimal amount, String referenceNo, String description) throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("amount", amount.toString());
         params.put("reference_no", referenceNo == null ? "" : referenceNo);
         params.put("description", description == null ? "" : description);
@@ -219,7 +229,7 @@ public class GPayApiClient {
      */
     // Check Payment Status
     public PaymentStatus checkPaymentStatus(String requestId) throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("request_id", requestId);
         params.put("request_timestamp", String.valueOf(System.currentTimeMillis()));
         ApiResponse apiResponse = sendRequest("/payment/check-payment-status", params);
@@ -260,7 +270,7 @@ public class GPayApiClient {
      */
     // Send Money
     public SendMoneyResult sendMoney(BigDecimal amount, String walletGatewayId, String referenceNo, String description) throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("amount", amount.toString());
         params.put("wallet_gateway_id", walletGatewayId);
         params.put("reference_no", referenceNo == null ? "" : referenceNo);
@@ -301,7 +311,7 @@ public class GPayApiClient {
      */
     // Get Day Statement
     public Statement getStatement(String date) throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("date", date);
         params.put("request_timestamp", String.valueOf(System.currentTimeMillis()));
         ApiResponse apiResponse = sendRequest("/info/statement", params);
@@ -356,7 +366,7 @@ public class GPayApiClient {
      */
     // Check Wallet
     public WalletCheck checkWallet(String walletGatewayId) throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("wallet_gateway_id", walletGatewayId);
         params.put("request_timestamp", String.valueOf(System.currentTimeMillis()));
         ApiResponse apiResponse = sendRequest("/info/check-wallet", params);
@@ -389,7 +399,7 @@ public class GPayApiClient {
      */
     // Get Outstanding Transactions
     public OutstandingTransactions getOutstandingTransactions() throws Exception {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
         params.put("request_timestamp", String.valueOf(System.currentTimeMillis()));
         ApiResponse apiResponse = sendRequest("/info/outstanding-transactions", params);
         com.google.gson.JsonObject data = gson.fromJson(apiResponse.response, com.google.gson.JsonObject.class).getAsJsonObject("data");
@@ -430,26 +440,41 @@ public class GPayApiClient {
 
 
 
+    /**
+     * Represents the API response including body, headers, and status code.
+     */
     public class ApiResponse {
-
+        /** The response body as a string. */
         public final String response;
+        /** The response headers as a map. */
         public final Map<String,String> headers;
+        /** The HTTP status code. */
         public final int code;
-
+        /**
+         * Constructs an ApiResponse.
+         * @param response The response body.
+         * @param headers The response headers.
+         * @param code The HTTP status code.
+         */
         private ApiResponse(String response, Map<String, String> headers, int code) {
             this.response = response;
             this.headers = headers;
             this.code = code;
         }
-        
+        /**
+         * Parses the response body as a JsonObject.
+         * @return The response as a JsonObject.
+         */
         public com.google.gson.JsonObject getJsonResponse() {
             return gson.fromJson(response, com.google.gson.JsonObject.class);
         }
-
+        /**
+         * Returns the response body as a string.
+         * @return The response body.
+         */
         @Override
         public String toString() {
             return this.response;
         }
-        
     }
 }
